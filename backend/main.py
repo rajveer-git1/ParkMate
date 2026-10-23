@@ -1,5 +1,10 @@
 from fastapi import FastAPI
 
+from backend import models
+from backend.database import Base, engine
+
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI(title="ParkMate API")
 
 
