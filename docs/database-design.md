@@ -71,3 +71,4 @@ One row = one car parked by a valet.
 - Lot is **Full** when the number of "parked" bookings in it >= total_slots, otherwise **Available**
 - Fee = hours parked (rounded up, minimum 1 hour) x price_per_hour
 - Nearby lots = lots sorted by distance from the hotel's latitude/longitude
+- Locations are entered as one "latitude, longitude" text copied from Google Maps (for example "19.0760, 72.8777"). The code splits it and stores two separate numbers in the latitude and longitude columns.

@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+from backend.utils import parse_coordinates
 
 
 # ---------- Hotel ----------
@@ -9,8 +11,13 @@ class HotelCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     address: str = Field(min_length=1, max_length=255)
     city: str = Field(min_length=1, max_length=100)
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    coordinates: str = Field(description="Copy from Google Maps, e.g. 19.0760, 72.8777")
+
+    @field_validator("coordinates")
+    @classmethod
+    def check_coordinates(cls, value: str) -> str:
+        parse_coordinates(value)
+        return value
 
 
 class HotelOut(BaseModel):
@@ -26,13 +33,23 @@ class HotelOut(BaseModel):
 
 
 # ---------- User ----------
-class UserCreate(BaseModel):
+class UserRegisterBase(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     email: EmailStr
     phone: Optional[str] = None
     password: str = Field(min_length=6, max_length=72)
-    role: Literal["owner", "hotel", "valet"]
-    hotel_id: Optional[int] = None
+
+
+class OwnerRegister(UserRegisterBase):
+    pass
+
+
+class ValetCreate(UserRegisterBase):
+    pass
+
+
+class HotelRegister(UserRegisterBase):
+    hotel: HotelCreate
 
 
 class UserOut(BaseModel):
@@ -53,10 +70,15 @@ class LotCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     address: str = Field(min_length=1, max_length=255)
     city: str = Field(min_length=1, max_length=100)
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    coordinates: str = Field(description="Copy from Google Maps, e.g. 19.0760, 72.8777")
     total_slots: int = Field(gt=0)
     price_per_hour: float = Field(gt=0)
+
+    @field_validator("coordinates")
+    @classmethod
+    def check_coordinates(cls, value: str) -> str:
+        parse_coordinates(value)
+        return value
 
 
 class LotOut(BaseModel):
@@ -100,3 +122,9 @@ class BookingOut(BaseModel):
     check_out_time: Optional[datetime] = None
     total_fee: Optional[float] = None
     status: str
+
+    # ---------- Login ----------
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    role: str
