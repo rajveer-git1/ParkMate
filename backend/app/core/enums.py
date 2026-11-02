@@ -10,3 +10,8 @@ class UserRole(str, Enum):
 class BookingStatus(str, Enum):
     PARKED = "parked"
     COMPLETED = "completed"
+
+
+class LotStatus(str, Enum):
+    AVAILABLE = "Available"
+    FULL = "Full"

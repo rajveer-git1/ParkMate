@@ -35,3 +35,32 @@ class LotOut(BaseModel):
     price_per_hour: float
     is_active: bool
     created_at: datetime
+
+
+class LotUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    address: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    city: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    coordinates: Optional[str] = Field(
+        default=None, description="Copy from Google Maps, e.g. 19.0760, 72.8777"
+    )
+    total_slots: Optional[int] = Field(default=None, gt=0)
+    price_per_hour: Optional[float] = Field(default=None, gt=0)
+    is_active: Optional[bool] = None
+
+    @field_validator("coordinates")
+    @classmethod
+    def check_coordinates(cls, value: Optional[str]) -> Optional[str]:
+        if value is not None:
+            parse_coordinates(value)
+        return value
+
+
+class LotWithStatus(LotOut):
+    occupied_slots: int
+    available_slots: int
+    status: str
+
+
+class NearbyLot(LotWithStatus):
+    distance_km: float
