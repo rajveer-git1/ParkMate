@@ -17,6 +17,7 @@ class Booking(Base):
     guest_phone = Column(String(20), nullable=False)
     vehicle_number = Column(String(20), nullable=False)
     vehicle_model = Column(String(50))
+    vehicle_color = Column(String(30))
     price_per_hour = Column(Float, nullable=False)
     check_in_time = Column(DateTime, default=datetime.now)
     check_out_time = Column(DateTime, nullable=True)

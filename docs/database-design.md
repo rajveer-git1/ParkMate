@@ -54,6 +54,7 @@ One row = one car parked by a valet.
 | guest_phone | String(20) | Required |
 | vehicle_number | String(20) | Required |
 | vehicle_model | String(50) | Optional |
+| vehicle_color | String(30) | Optional |
 | price_per_hour | Float | Copied from the lot at check-in |
 | check_in_time | DateTime | Set at check-in |
 | check_out_time | DateTime | Empty until the car is returned |
