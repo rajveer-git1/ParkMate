@@ -19,3 +19,14 @@ def check_in(
     current_user: models.User = Depends(require_role(UserRole.VALET)),
 ):
     return booking_service.check_in(db, data, current_user)
+
+
+@router.post("/{booking_id}/checkout", response_model=schemas.BookingOut)
+def check_out(
+    booking_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(
+        require_role(UserRole.HOTEL, UserRole.VALET)
+    ),
+):
+    return booking_service.check_out(db, booking_id, current_user)
