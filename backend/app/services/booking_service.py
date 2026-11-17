@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from app.core.enums import BookingStatus
+from app.utils.billing import calculate_fee
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -40,6 +44,30 @@ def check_in(
         vehicle_model=data.vehicle_model,
         vehicle_color=data.vehicle_color,
         price_per_hour=lot.price_per_hour,
+    )
+    db.commit()
+    db.refresh(booking)
+    return booking
+
+
+def check_out(db: Session, booking_id: int, user: models.User) -> models.Booking:
+    booking = booking_repository.get_by_id(db, booking_id)
+    if booking is None or booking.hotel_id != user.hotel_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found"
+        )
+    if booking.status != BookingStatus.PARKED.value:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This car has already been returned",
+        )
+
+    check_out_time = datetime.now()
+    total_fee = calculate_fee(
+        booking.check_in_time, check_out_time, booking.price_per_hour
+    )
+    booking_repository.mark_completed(
+        db, booking, check_out_time=check_out_time, total_fee=total_fee
     )
     db.commit()
     db.refresh(booking)

@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -45,3 +46,17 @@ def get_parked_by_vehicle(db: Session, vehicle_number: str) -> Optional[Booking]
         )
         .first()
     )
+
+
+def get_by_id(db: Session, booking_id: int) -> Optional[Booking]:
+    return db.query(Booking).filter(Booking.id == booking_id).first()
+
+
+def mark_completed(
+    db: Session, booking: Booking, *, check_out_time: datetime, total_fee: float
+) -> Booking:
+    booking.check_out_time = check_out_time
+    booking.total_fee = total_fee
+    booking.status = BookingStatus.COMPLETED.value
+    db.flush()
+    return booking
