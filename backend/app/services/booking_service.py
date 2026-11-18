@@ -1,12 +1,13 @@
 from datetime import datetime
+from typing import Optional
 
-from app.core.enums import BookingStatus
-from app.utils.billing import calculate_fee
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app import models, schemas
+from app.core.enums import BookingStatus, UserRole
 from app.repositories import booking_repository, lot_repository
+from app.utils.billing import calculate_fee
 
 
 def check_in(
@@ -72,3 +73,48 @@ def check_out(db: Session, booking_id: int, user: models.User) -> models.Booking
     db.commit()
     db.refresh(booking)
     return booking
+
+
+def _scope(user: models.User) -> dict:
+    if user.role == UserRole.OWNER.value:
+        return {"owner_id": user.id}
+    return {"hotel_id": user.hotel_id}
+
+
+def _to_detail(booking: models.Booking) -> dict:
+    data = schemas.BookingOut.model_validate(booking).model_dump()
+    data["lot_name"] = booking.lot.name
+    data["hotel_name"] = booking.hotel.name
+    data["valet_name"] = booking.valet.name
+    return data
+
+
+def list_bookings(
+    db: Session,
+    user: models.User,
+    *,
+    booking_status: Optional[BookingStatus],
+    lot_id: Optional[int],
+    search: Optional[str],
+    limit: int,
+    offset: int,
+) -> list[dict]:
+    if user.role == UserRole.VALET.value:
+        booking_status = BookingStatus.PARKED
+
+    search = search.strip() if search else None
+
+    bookings = booking_repository.list_bookings(
+        db,
+        **_scope(user),
+        booking_status=booking_status.value if booking_status else None,
+        lot_id=lot_id,
+        search=search or None,
+        limit=limit,
+        offset=offset,
+    )
+    return [_to_detail(booking) for booking in bookings]
+
+
+def summary(db: Session, user: models.User, lot_id: Optional[int]) -> dict:
+    return booking_repository.summarize(db, **_scope(user), lot_id=lot_id)

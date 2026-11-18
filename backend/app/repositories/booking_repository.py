@@ -1,10 +1,11 @@
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy import func, or_
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.enums import BookingStatus
-from app.models import Booking
+from app.models import Booking, ParkingLot
 
 
 def add(
@@ -60,3 +61,98 @@ def mark_completed(
     booking.status = BookingStatus.COMPLETED.value
     db.flush()
     return booking
+
+
+def _filtered_query(
+    db: Session,
+    *,
+    hotel_id: Optional[int],
+    owner_id: Optional[int],
+    booking_status: Optional[str],
+    lot_id: Optional[int],
+    search: Optional[str],
+):
+    query = db.query(Booking)
+
+    if owner_id is not None:
+        query = query.join(ParkingLot, Booking.lot_id == ParkingLot.id).filter(
+            ParkingLot.owner_id == owner_id
+        )
+    if hotel_id is not None:
+        query = query.filter(Booking.hotel_id == hotel_id)
+    if booking_status is not None:
+        query = query.filter(Booking.status == booking_status)
+    if lot_id is not None:
+        query = query.filter(Booking.lot_id == lot_id)
+    if search:
+        plate = search.upper().replace(" ", "").replace("-", "")
+        query = query.filter(
+            or_(
+                Booking.vehicle_number.ilike(f"%{plate}%"),
+                Booking.guest_name.ilike(f"%{search}%"),
+            )
+        )
+    return query
+
+
+def list_bookings(
+    db: Session,
+    *,
+    hotel_id: Optional[int] = None,
+    owner_id: Optional[int] = None,
+    booking_status: Optional[str] = None,
+    lot_id: Optional[int] = None,
+    search: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[Booking]:
+    query = _filtered_query(
+        db,
+        hotel_id=hotel_id,
+        owner_id=owner_id,
+        booking_status=booking_status,
+        lot_id=lot_id,
+        search=search,
+    )
+    return (
+        query.options(
+            joinedload(Booking.lot),
+            joinedload(Booking.hotel),
+            joinedload(Booking.valet),
+        )
+        .order_by(Booking.check_in_time.desc(), Booking.id.desc())
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
+
+
+def summarize(
+    db: Session,
+    *,
+    hotel_id: Optional[int] = None,
+    owner_id: Optional[int] = None,
+    lot_id: Optional[int] = None,
+) -> dict:
+    query = _filtered_query(
+        db,
+        hotel_id=hotel_id,
+        owner_id=owner_id,
+        booking_status=None,
+        lot_id=lot_id,
+        search=None,
+    )
+    completed_query = query.filter(Booking.status == BookingStatus.COMPLETED.value)
+
+    total_fees = completed_query.with_entities(
+        func.coalesce(func.sum(Booking.total_fee), 0.0)
+    ).scalar()
+
+    return {
+        "total_bookings": query.count(),
+        "parked_now": query.filter(
+            Booking.status == BookingStatus.PARKED.value
+        ).count(),
+        "completed": completed_query.count(),
+        "total_fees": round(total_fees, 2),
+    }

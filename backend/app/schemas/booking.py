@@ -46,3 +46,16 @@ class BookingOut(BaseModel):
     check_out_time: Optional[datetime] = None
     total_fee: Optional[float] = None
     status: str
+
+
+class BookingDetail(BookingOut):
+    lot_name: str
+    hotel_name: str
+    valet_name: str
+
+
+class BookingSummary(BaseModel):
+    total_bookings: int
+    parked_now: int
+    completed: int
+    total_fees: float
