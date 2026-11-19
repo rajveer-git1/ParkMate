@@ -8,3 +8,6 @@ ROLE_LABELS = {
     "hotel": "Hotel staff",
     "valet": "Valet",
 }
+
+
+MENU_ADD_EDIT_LOT = "Add / Edit Lot"

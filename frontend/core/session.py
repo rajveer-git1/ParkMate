@@ -1,6 +1,6 @@
 import streamlit as st
 
-from services import auth_service
+from services import auth_service, hotel_service
 from services.client import ApiError
 
 
@@ -10,10 +10,16 @@ def is_logged_in() -> bool:
 
 def log_in(email: str, password: str) -> None:
     token_data = auth_service.login(email, password)
-    user = auth_service.get_me(token_data["access_token"])
-    st.session_state["token"] = token_data["access_token"]
+    token = token_data["access_token"]
+    user = auth_service.get_me(token)
+    hotel = None
+    if user["role"] in ("hotel", "valet"):
+        hotel = hotel_service.my_hotel(token)
+
+    st.session_state["token"] = token
     st.session_state["role"] = token_data["role"]
     st.session_state["user"] = user
+    st.session_state["hotel"] = hotel
 
 
 def get_token():
@@ -26,6 +32,10 @@ def get_role():
 
 def get_user():
     return st.session_state.get("user")
+
+
+def get_hotel():
+    return st.session_state.get("hotel")
 
 
 def logout() -> None:
