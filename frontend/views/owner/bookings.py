@@ -1,7 +1,7 @@
 import streamlit as st
 
 from components import pager, status
-from components.formatting import money, when
+from components.formatting import car_details, money, when
 from core import session
 from services import booking_service, lot_service
 from services.client import ApiError
@@ -10,12 +10,10 @@ PREFIX = "owner_bookings"
 
 
 def _row(booking: dict) -> dict:
-    details = " ".join(
-        part for part in (booking["vehicle_color"], booking["vehicle_model"]) if part
-    )
+    
     return {
         "Car": booking["vehicle_number"],
-        "Details": details or "-",
+        "Details": car_details(booking),
         "Guest": booking["guest_name"],
         "Hotel": booking["hotel_name"],
         "Lot": booking["lot_name"],

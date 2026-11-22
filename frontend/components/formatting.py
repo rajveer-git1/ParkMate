@@ -23,3 +23,8 @@ def parked_for(check_in: str, check_out: str) -> str:
     ).total_seconds()
     hours, minutes = divmod(max(int(seconds // 60), 0), 60)
     return f"{hours} h {minutes} min" if hours else f"{minutes} min"
+
+
+def car_details(booking: dict) -> str:
+    parts = [booking.get("vehicle_color"), booking.get("vehicle_model")]
+    return " ".join(part for part in parts if part) or "-"

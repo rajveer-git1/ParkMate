@@ -29,3 +29,7 @@ def summary(token: str, lot_id: Optional[int] = None) -> dict:
 
 def checkout(token: str, booking_id: int) -> dict:
     return request("POST", f"/bookings/{booking_id}/checkout", token=token)
+
+
+def check_in(token: str, payload: dict) -> dict:
+    return request("POST", "/bookings", token=token, json=payload)

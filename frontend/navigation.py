@@ -1,9 +1,9 @@
 from core.config import MENU_ADD_EDIT_LOT
-from views.common import home
 from views.hotel import bookings as hotel_bookings
 from views.hotel import nearby_lots, valets
 from views.owner import add_edit_lot, my_lots
 from views.owner import bookings as owner_bookings
+from views.valet import check_in, parked_cars
 
 MENUS = {
     "owner": {
@@ -16,7 +16,10 @@ MENUS = {
         "Bookings": hotel_bookings.render,
         "Valets": valets.render,
     },
-    "valet": {"Home": home.render},
+    "valet": {
+        "Check in": check_in.render,
+        "Parked Cars": parked_cars.render,
+    },
 }
 
 
