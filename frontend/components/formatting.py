@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import Optional
 
@@ -28,3 +29,10 @@ def parked_for(check_in: str, check_out: str) -> str:
 def car_details(booking: dict) -> str:
     parts = [booking.get("vehicle_color"), booking.get("vehicle_model")]
     return " ".join(part for part in parts if part) or "-"
+
+
+_MARKDOWN_SPECIAL = re.compile(r"([\\`*_\[\]#~$<>|])")
+
+
+def escape_markdown(text: str) -> str:
+    return _MARKDOWN_SPECIAL.sub(r"\\\1", text)

@@ -1,7 +1,7 @@
 import streamlit as st
 
 from components import flash, status
-from components.formatting import money
+from components.formatting import escape_markdown, money
 from core import session
 from core.config import MENU_ADD_EDIT_LOT
 from services import booking_service, lot_service
@@ -18,8 +18,8 @@ def _lot_card(lot: dict) -> None:
     with st.container(border=True):
         info, usage, state, action = st.columns([3, 3, 2, 1])
 
-        info.markdown(f"**{lot['name']}**")
-        info.caption(f"{lot['address']}, {lot['city']}")
+        info.markdown(f"**{escape_markdown(lot['name'])}**")
+        info.caption(escape_markdown(f"{lot['address']}, {lot['city']}"))
         info.write(f"{money(lot['price_per_hour'])} per hour")
 
         used = lot["occupied_slots"]

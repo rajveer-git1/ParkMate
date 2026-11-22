@@ -61,19 +61,20 @@ def render() -> None:
         return
 
     try:
-        if hotel:
-            auth_service.register_hotel(
-                name.strip(),
-                email.strip(),
-                phone.strip() or None,
-                password,
-                {key: value.strip() for key, value in hotel.items()},
-            )
-        else:
-            auth_service.register_owner(
-                name.strip(), email.strip(), phone.strip() or None, password
-            )
-        session.log_in(email.strip(), password)
+        with st.spinner("Creating your account..."):
+            if hotel:
+                auth_service.register_hotel(
+                    name.strip(),
+                    email.strip(),
+                    phone.strip() or None,
+                    password,
+                    {key: value.strip() for key, value in hotel.items()},
+                )
+            else:
+                auth_service.register_owner(
+                    name.strip(), email.strip(), phone.strip() or None, password
+                )
+            session.log_in(email.strip(), password)
     except ApiError as error:
         st.error(error.message)
         return

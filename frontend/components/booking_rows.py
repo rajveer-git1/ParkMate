@@ -1,6 +1,7 @@
 import streamlit as st
 
 from components import checkout
+from components.formatting import escape_markdown
 
 
 def render(bookings: list, columns: list, *, token: str, key_prefix: str) -> None:
@@ -14,7 +15,7 @@ def render(bookings: list, columns: list, *, token: str, key_prefix: str) -> Non
     for booking in bookings:
         row = st.columns(widths)
         for slot, (_, _, getter) in zip(row, columns):
-            slot.write(getter(booking))
+            slot.write(escape_markdown(str(getter(booking))))
         if booking["status"] == "parked":
             pressed = row[-1].button(
                 "Return", key=f"{key_prefix}_return_{booking['id']}"

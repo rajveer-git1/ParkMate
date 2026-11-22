@@ -19,7 +19,8 @@ def render() -> None:
         return
 
     try:
-        session.log_in(email.strip(), password)
+        with st.spinner("Logging in..."):
+            session.log_in(email.strip(), password)
     except ApiError as error:
         st.error(error.message)
         return
